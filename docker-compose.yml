@@ -1,0 +1,175 @@
+version: '3.8'
+
+services:
+  auth:
+    build: ./services/auth
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - DATABASE_URL=postgres://user:pass@db:5432/auth_db?sslmode=disable
+      - NATS_URL=nats://nats:4222
+      - JWT_SECRET=${JWT_SECRET:-super-secret-key-change-in-prod}
+    depends_on:
+      - db
+      - nats
+    tmpfs:
+      - /tmp
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+        reservations:
+          memory: 32M
+
+  booking:
+    build: ./services/booking
+    ports:
+      - "8081:8081"
+    environment:
+      - PORT=8081
+      - DATABASE_URL=postgres://user:pass@db:5432/booking_db?sslmode=disable
+      - NATS_URL=nats://nats:4222
+    depends_on:
+      - db
+      - nats
+    tmpfs:
+      - /tmp
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+        reservations:
+          memory: 32M
+
+  payment:
+    build: ./services/payment
+    ports:
+      - "8082:8082"
+    environment:
+      - PORT=8082
+      - DATABASE_URL=postgres://user:pass@db:5432/payment_db?sslmode=disable
+      - RAZORPAY_KEY_ID=${RAZORPAY_KEY_ID:-rzp_test_xxx}
+      - RAZORPAY_KEY_SECRET=${RAZORPAY_KEY_SECRET:-secret}
+    depends_on:
+      - db
+    tmpfs:
+      - /tmp
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+        reservations:
+          memory: 32M
+
+  location:
+    build: ./services/location
+    ports:
+      - "8083:8083"
+    environment:
+      - PORT=8083
+      - REDIS_URL=redis:6379
+    depends_on:
+      - redis
+    tmpfs:
+      - /tmp
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+        reservations:
+          memory: 32M
+
+  notifications:
+    build: ./services/notifications
+    ports:
+      - "8084:8084"
+    environment:
+      - PORT=8084
+      - NATS_URL=nats://nats:4222
+    depends_on:
+      - nats
+    tmpfs:
+      - /tmp
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+        reservations:
+          memory: 32M
+
+  provider:
+    build: ./services/provider
+    ports:
+      - "8085:8085"
+    environment:
+      - PORT=8085
+      - DATABASE_URL=postgres://user:pass@db:5432/provider_db?sslmode=disable
+    depends_on:
+      - db
+    tmpfs:
+      - /tmp
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+        reservations:
+          memory: 32M
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=pass
+      - POSTGRES_DB=healthflow
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/postgres/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d healthflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
+
+  nats:
+    image: nats:2.10-alpine
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    command: ["-js"] # Enable JetStream
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+        reservations:
+          memory: 32M
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+        reservations:
+          memory: 32M
+
+volumes:
+  postgres_data:
+  redis_data:
