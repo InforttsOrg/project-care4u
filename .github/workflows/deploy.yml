@@ -1,0 +1,35 @@
+name: Project Deployment (Medical)
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy-web:
+    name: Deploy Medical Dashboard to Cloudflare
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Medical
+        uses: actions/checkout@v3
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.13.0'
+          channel: 'stable'
+
+      - name: Build Web
+        run: |
+          cd apps/mobile/doctor_booking_flutter
+          flutter pub get
+          flutter build web --release --base-href "/"
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: infortts-medical
+          directory: apps/mobile/doctor_booking_flutter/build/web
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
