@@ -29,7 +29,7 @@ jobs:
         run: |
           cd apps/mobile/doctor_booking_flutter
           flutter pub get
-          flutter build web --release --base-href "/"
+          flutter build web --release --base-href "/" --no-tree-shake-icons
 
       - name: Create Cloudflare Pages Project
         run: npx wrangler pages project create project-app-medical --production-branch main || true
