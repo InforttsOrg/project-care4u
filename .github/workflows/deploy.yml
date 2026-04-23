@@ -35,11 +35,12 @@ jobs:
           flutter pub get
           flutter build web --release --base-href "/" --no-tree-shake-icons
 
-      - name: Create Cloudflare Pages Project
-        run: npx wrangler pages project create project-app-care4u --production-branch main || true
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - name: Create Cloudflare Pages Project (if missing)
+        run: |
+          curl -X POST "https://api.cloudflare.com/client/v4/accounts/${{ secrets.CLOUDFLARE_ACCOUNT_ID }}/pages/projects" \
+               -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
+               -H "Content-Type: application/json" \
+               --data '{"name":"project-app-care4u", "production_branch":"main"}' || true
 
       - name: Configure Custom Domain
         run: |
