@@ -32,14 +32,14 @@ jobs:
           flutter build web --release --base-href "/" --no-tree-shake-icons
 
       - name: Create Cloudflare Pages Project
-        run: npx wrangler pages project create project-app-medical --production-branch main || true
+        run: npx wrangler pages project create project-app-care4u --production-branch main || true
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       - name: Configure Custom Domain
         run: |
-          curl -X POST "https://api.cloudflare.com/client/v4/accounts/${{ secrets.CLOUDFLARE_ACCOUNT_ID }}/pages/projects/project-app-medical/domains" \
+          curl -X POST "https://api.cloudflare.com/client/v4/accounts/${{ secrets.CLOUDFLARE_ACCOUNT_ID }}/pages/projects/project-app-care4u/domains" \
                -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
                -H "Content-Type: application/json" \
                --data '{"name":"medical.infortts.com"}' || true
@@ -52,6 +52,6 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: project-app-medical
+          projectName: project-app-care4u
           directory: apps/mobile/doctor_booking_flutter/build/web
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
