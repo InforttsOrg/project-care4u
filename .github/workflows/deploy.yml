@@ -1,4 +1,4 @@
-name: Project Deployment (Medical)
+name: Project Deployment (Care4U)
 
 on:
   push:
@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   deploy-web:
-    name: Deploy Medical Dashboard to Cloudflare
+    name: Deploy Care4U Dashboard to Cloudflare
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -47,7 +47,7 @@ jobs:
           curl -X POST "https://api.cloudflare.com/client/v4/accounts/${{ secrets.CLOUDFLARE_ACCOUNT_ID }}/pages/projects/project-app-care4u/domains" \
                -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
                -H "Content-Type: application/json" \
-               --data '{"name":"medical.infortts.com"}' || true
+               --data '{"name":"care4u.infortts.com"}' || true
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
