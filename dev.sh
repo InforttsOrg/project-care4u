@@ -13,6 +13,18 @@ NC='\x1b[0m' # No Color
 
 PROJECT_NAME="Care4u"
 
+# --- Command Parsing ---
+if [ "$1" = "clean" ]; then
+    echo -e "${YELLOW}🧹 Cleaning up Care4u...${NC}"
+    exit 0
+fi
+
+if [ "$1" = "install" ]; then
+    echo -e "${YELLOW}📦 Installing Care4u dependencies...${NC}"
+    exit 0
+fi
+
+
 # --- Functions ---
 kill_port() {
     local port=$1

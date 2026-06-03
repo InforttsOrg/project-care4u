@@ -3,7 +3,7 @@ name: Project Deployment (Care4U)
 on:
   push:
     branches:
-      - main
+      - live
   workflow_dispatch:
 
 concurrency:
@@ -40,7 +40,7 @@ jobs:
           curl -X POST "https://api.cloudflare.com/client/v4/accounts/${{ secrets.CLOUDFLARE_ACCOUNT_ID }}/pages/projects" \
                -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
                -H "Content-Type: application/json" \
-               --data '{"name":"project-app-care4u", "production_branch":"main"}' || true
+               --data '{"name":"project-app-care4u", "production_branch":"live"}' || true
 
       - name: Configure Custom Domain
         run: |
