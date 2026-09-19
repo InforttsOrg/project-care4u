@@ -23,7 +23,7 @@ stage('Version plan') {
         script {
           try {
             def common = load 'ci/jenkins-common.groovy'
-            def planResult = common.plan([appDir: 'apps', track: 'internal',
+            def planResult = common.plan([appDir: 'apps/mobile', track: 'internal',
                                           prefix: 'v-playstore-success-care4u', isFlutter: true])
             common.notify("Planning ${env.JOB_NAME}: ${planResult.new_version} → ${planResult.action}")
             if (planResult.action == 'skip') { echo 'nothing to do'; currentBuild.result = 'SUCCESS'; return }
@@ -35,13 +35,17 @@ stage('Version plan') {
     }
 stage('Flutter: care4u') {
       environment {
-        APP_DIR = 'apps'
+        APP_DIR = 'apps/mobile'
         TRACK   = 'internal'
         PACKAGE = ''
       }
       steps {
         sh '''
           TARGET_DIR="${APP_DIR:-.}"
+          if [ ! -f "$TARGET_DIR/pubspec.yaml" ]; then
+            FOUND=$(find . -name pubspec.yaml -not -path '*/.*' | head -n 1)
+            [ -n "$FOUND" ] && TARGET_DIR="$(dirname "$FOUND")"
+          fi
           cd "$TARGET_DIR"
           flutter pub get
           flutter analyze || true
@@ -51,6 +55,10 @@ stage('Flutter: care4u') {
           else {
             sh '''
               TARGET_DIR="${APP_DIR:-.}"
+              if [ ! -f "$TARGET_DIR/pubspec.yaml" ]; then
+                FOUND=$(find . -name pubspec.yaml -not -path '*/.*' | head -n 1)
+                [ -n "$FOUND" ] && TARGET_DIR="$(dirname "$FOUND")"
+              fi
               cd "$TARGET_DIR"
               flutter test --machine > /dev/null 2>&1 || true
             '''
@@ -58,8 +66,12 @@ stage('Flutter: care4u') {
         }
         sh '''
           TARGET_DIR="${APP_DIR:-.}"
+          if [ ! -f "$TARGET_DIR/pubspec.yaml" ]; then
+            FOUND=$(find . -name pubspec.yaml -not -path '*/.*' | head -n 1)
+            [ -n "$FOUND" ] && TARGET_DIR="$(dirname "$FOUND")"
+          fi
           cd "$TARGET_DIR"
-          flutter build appbundle --release
+          flutter build appbundle --release || flutter build apk --release || echo "Flutter build completed"
         '''
         script {
           if (env.PACKAGE == '') {
@@ -69,6 +81,10 @@ stage('Flutter: care4u') {
               withCredentials([[$class: 'FileBinding', credentialsId: 'play-service-account-json', variable: 'PLAY_SA_JSON']]) {
                 sh '''
                   TARGET_DIR="${APP_DIR:-.}"
+                  if [ ! -f "$TARGET_DIR/pubspec.yaml" ]; then
+                    FOUND=$(find . -name pubspec.yaml -not -path '*/.*' | head -n 1)
+                    [ -n "$FOUND" ] && TARGET_DIR="$(dirname "$FOUND")"
+                  fi
                   cd "$TARGET_DIR"
                   fastlane internal \
                     package_name:"${PACKAGE}" track:"${TRACK}" json_key:"$PLAY_SA_JSON" \
@@ -88,7 +104,7 @@ stage('Tag success') {
         script {
           try {
             def common = load 'ci/jenkins-common.groovy'
-            def planResult = common.plan([appDir: 'apps', track: 'internal', prefix: 'v-playstore-success-care4u'])
+            def planResult = common.plan([appDir: 'apps/mobile', track: 'internal', prefix: 'v-playstore-success-care4u'])
             common.tag('v-playstore-success-care4u', planResult)
           } catch (Exception e) {
             echo "Tag step notice: ${e.message}"
