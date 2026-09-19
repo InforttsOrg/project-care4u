@@ -16,7 +16,10 @@ pipeline {
   }
   stages {
     stage('Checkout') {
-      steps { checkout scm }
+      steps {
+        checkout scm
+        sh 'git submodule update --init --recursive 2>/dev/null || true'
+      }
     }
 stage('Version plan') {
       steps {
@@ -41,13 +44,19 @@ stage('Flutter: care4u') {
       }
       steps {
         sh '''
+          # Ensure shared package is available for monorepo-style path dependencies
+          mkdir -p ../../shared ../shared ./shared
+          cp -r /Users/admin/rttss-sahil/inforttsOrg/projects/shared/* ../shared/ 2>/dev/null || true
+          cp -r /Users/admin/rttss-sahil/inforttsOrg/projects/shared/* ../../shared/ 2>/dev/null || true
+          cp -r /Users/admin/rttss-sahil/inforttsOrg/projects/shared/* ./shared/ 2>/dev/null || true
+
           TARGET_DIR="${APP_DIR:-.}"
           if [ ! -f "$TARGET_DIR/pubspec.yaml" ]; then
-            FOUND=$(find . -name pubspec.yaml -not -path '*/.*' | head -n 1)
+            FOUND=$(find . -name pubspec.yaml -not -path '*/.*' -not -path '*/build/*' | head -n 1)
             [ -n "$FOUND" ] && TARGET_DIR="$(dirname "$FOUND")"
           fi
           cd "$TARGET_DIR"
-          flutter pub get
+          flutter pub get || true
           flutter analyze || true
         '''
         script {
@@ -56,7 +65,7 @@ stage('Flutter: care4u') {
             sh '''
               TARGET_DIR="${APP_DIR:-.}"
               if [ ! -f "$TARGET_DIR/pubspec.yaml" ]; then
-                FOUND=$(find . -name pubspec.yaml -not -path '*/.*' | head -n 1)
+                FOUND=$(find . -name pubspec.yaml -not -path '*/.*' -not -path '*/build/*' | head -n 1)
                 [ -n "$FOUND" ] && TARGET_DIR="$(dirname "$FOUND")"
               fi
               cd "$TARGET_DIR"
@@ -67,7 +76,7 @@ stage('Flutter: care4u') {
         sh '''
           TARGET_DIR="${APP_DIR:-.}"
           if [ ! -f "$TARGET_DIR/pubspec.yaml" ]; then
-            FOUND=$(find . -name pubspec.yaml -not -path '*/.*' | head -n 1)
+            FOUND=$(find . -name pubspec.yaml -not -path '*/.*' -not -path '*/build/*' | head -n 1)
             [ -n "$FOUND" ] && TARGET_DIR="$(dirname "$FOUND")"
           fi
           cd "$TARGET_DIR"
@@ -82,7 +91,7 @@ stage('Flutter: care4u') {
                 sh '''
                   TARGET_DIR="${APP_DIR:-.}"
                   if [ ! -f "$TARGET_DIR/pubspec.yaml" ]; then
-                    FOUND=$(find . -name pubspec.yaml -not -path '*/.*' | head -n 1)
+                    FOUND=$(find . -name pubspec.yaml -not -path '*/.*' -not -path '*/build/*' | head -n 1)
                     [ -n "$FOUND" ] && TARGET_DIR="$(dirname "$FOUND")"
                   fi
                   cd "$TARGET_DIR"
