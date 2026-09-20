@@ -40,7 +40,7 @@ stage('Flutter: care4u') {
       environment {
         APP_DIR = 'apps/mobile'
         TRACK   = 'internal'
-        PACKAGE = ''
+        PACKAGE = 'com.infortts.care4u'
       }
       steps {
         sh '''
@@ -80,9 +80,25 @@ stage('Flutter: care4u') {
             [ -n "$FOUND" ] && TARGET_DIR="$(dirname "$FOUND")"
           fi
           cd "$TARGET_DIR"
-          flutter build appbundle --release || flutter build apk --release || echo "Flutter build completed"
+          flutter build apk --release || echo "APK build attempted"
+          flutter build appbundle --release || echo "AppBundle build attempted"
         '''
         script {
+          def common = load 'ci/jenkins-common.groovy'
+          
+          // Direct build & upload of release APK to Hugging Face CDN
+          def apkFile = sh(script: 'find . -name "*.apk" -not -path "*/intermediates/*" | head -n 1', returnStdout: true)?.trim()
+          if (apkFile) {
+            echo "Found release APK: ${apkFile}. Uploading to Hugging Face CDN..."
+            common.publishHuggingFace([
+              slug: 'care4u',
+              apk: apkFile,
+              version: PLAN?.new_version ?: '1.0.0',
+              track: env.TRACK ?: 'internal'
+            ])
+          }
+
+          // Optional Play Store Track Upload — canonical lane reads PACKAGE/TRACK/PLAY_SA_JSON envs
           if (env.PACKAGE == '') {
             echo "no Play package for care4u — build-only complete"
           } else {
@@ -94,17 +110,34 @@ stage('Flutter: care4u') {
                     FOUND=$(find . -name pubspec.yaml -not -path '*/.*' -not -path '*/build/*' | head -n 1)
                     [ -n "$FOUND" ] && TARGET_DIR="$(dirname "$FOUND")"
                   fi
+                  if [ -z "$TARGET_DIR" ] || [ ! -d "$TARGET_DIR" ]; then
+                    echo "SKIP: no Flutter app dir for care4u — Play upload skipped"
+                    exit 0
+                  fi
+                  if [ ! -f "$TARGET_DIR/fastlane/Fastfile" ]; then
+                    echo "SKIP: no fastlane/Fastfile in $TARGET_DIR — Play upload not configured for care4u"
+                    exit 0
+                  fi
                   cd "$TARGET_DIR"
-                  fastlane internal \
-                    package_name:"${PACKAGE}" track:"${TRACK}" json_key:"$PLAY_SA_JSON" \
-                    aab:build/app/outputs/bundle/release/app-release.aab \
-                    skip_upload_metadata:true skip_upload_images:true skip_upload_screenshots:true || echo "Play upload completed/queued"
+                  fastlane internal
                 '''
               }
             } catch (Exception e) {
               echo "Play upload step notice: ${e.message}"
             }
           }
+        }
+      }
+    }
+stage('OTA registry: com.infortts.care4u') {
+      steps {
+        script {
+          def common = load 'ci/jenkins-common.groovy'
+          def patchFile = sh(script: 'find . -name "*.patch" -o -name "*.bin" -o -name "*.diff" | head -n 1', returnStdout: true)?.trim()
+          common.otaBump(PLAN, [
+            slug: 'com.infortts.care4u'.tokenize('.').last() ?: 'care4u',
+            patch: patchFile ?: ''
+          ])
         }
       }
     }
