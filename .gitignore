@@ -1,0 +1,17 @@
+.DS_Store
+.idea/
+.vscode/
+*.log
+.env
+.env.*
+!.env.example
+build/
+dist/
+.venv/
+venv/
+node_modules/
+.pub-cache/
+.gradle/
+Pods/
+*.iml
+__pycache__/
