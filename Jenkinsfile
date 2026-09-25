@@ -45,6 +45,9 @@ stage('Version plan') {
     }
 
 stage('Flutter: care4u') {
+      when {
+        expression { PLAN?.action == 'playstore' }
+      }
       environment {
         APP_DIR = 'apps/mobile'
         TRACK   = 'internal'
@@ -85,8 +88,8 @@ stage('Flutter: care4u') {
           }
         }
         script {
-          if (PLAN?.action == 'ota') {
-            echo "OTA action planned (Minor bump) — skipping full Play Store AppBundle build"
+          if (PLAN?.action != 'playstore') {
+            echo "Action is ${PLAN?.action} — skipping Play Store AppBundle build"
             return
           }
           def baseVer = PLAN?.base_version ?: ''
@@ -173,6 +176,9 @@ stage('Flutter: care4u') {
       }
     }
 stage('OTA registry: com.infortts.care4u') {
+      when {
+        expression { PLAN?.action == 'ota' }
+      }
       steps {
         script {
           if (!PLAN || !PLAN.new_version) {
