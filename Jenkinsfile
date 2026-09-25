@@ -199,12 +199,18 @@ stage('OTA registry: com.infortts.care4u') {
       }
     }
 stage('Tag success') {
+      when {
+        expression { PLAN?.action == 'playstore' }
+      }
       steps {
         script {
+          if (PLAN?.action != 'playstore') {
+            echo "Not a playstore release — skipping success tag"
+            return
+          }
           try {
             def common = load 'ci/jenkins-common.groovy'
-            def planResult = common.plan([appDir: 'apps/mobile', track: 'internal', prefix: 'v-playstore-success-care4u'])
-            common.tag('v-playstore-success-care4u', planResult)
+            common.tag('v-playstore-success-care4u', PLAN)
           } catch (Exception e) {
             echo "Tag step notice: ${e.message}"
           }
