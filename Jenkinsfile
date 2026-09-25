@@ -31,6 +31,9 @@ stage('Version plan') {
             def planResult = common.plan([appDir: 'apps/mobile', track: 'internal',
                                           prefix: 'v-playstore-success-care4u', isFlutter: true])
             PLAN = planResult
+            common.updateBuildSummary(planResult, [
+              android: planResult.action == 'playstore' ? '✅ Native .aab (Google Play internal track)' : (planResult.action == 'ota' ? '📦 OTA Differential Patch (HF CDN)' : '⏭️ Skipped (no native change)')
+            ])
             common.notify("Planning ${env.JOB_NAME}: ${planResult.new_version} → ${planResult.action}")
             if (planResult.action == 'skip') { echo 'nothing to do'; currentBuild.result = 'SUCCESS'; return }
           } catch (Exception e) {
@@ -110,6 +113,10 @@ stage('Flutter: care4u') {
           // Optional Play Store Track Upload — canonical lane reads PACKAGE/TRACK/PLAY_SA_JSON envs
           if (env.PACKAGE == '') {
             echo "no Play package for care4u — build-only complete"
+            common.updateBuildSummary(PLAN ?: [action: 'build', new_version: '1.0.0'], [
+              android: '✅ Build APK + HF CDN (No Play Package configured)',
+              health: '🟢 Local Build & HF CDN Artifact Upload Succeeded'
+            ])
           } else {
             try {
               withCredentials([[$class: 'FileBinding', credentialsId: 'play-service-account-json', variable: 'PLAY_SA_JSON']]) {
@@ -130,9 +137,17 @@ stage('Flutter: care4u') {
                   cd "$TARGET_DIR"
                   fastlane internal
                 '''
+                common.updateBuildSummary(PLAN ?: [action: 'playstore', new_version: '1.0.0'], [
+                  android: "✅ Google Play Internal Track (${env.PACKAGE}) + HF CDN APK",
+                  health: "🟢 Fastlane Internal Track Upload Succeeded"
+                ])
               }
             } catch (Exception e) {
               echo "Play upload step notice: ${e.message}"
+              common.updateBuildSummary(PLAN ?: [action: 'playstore', new_version: '1.0.0'], [
+                android: "⚠️ Play Store Upload Warning: ${e.message}",
+                health: "⚠️ Fastlane Notice: ${e.message}"
+              ])
             }
           }
         }
@@ -150,6 +165,10 @@ stage('OTA registry: com.infortts.care4u') {
           common.otaBump(PLAN, [
             slug: 'com.infortts.care4u'.tokenize('.').last() ?: 'care4u',
             patch: patchFile ?: ''
+          ])
+          common.updateBuildSummary(PLAN, [
+            android: "📦 OTA Patch Bump (HF CDN) parked on base ${PLAN.base_version}",
+            health: "🟢 OTA Release Registry Updated (Build #${PLAN.build_number})"
           ])
         }
       }
