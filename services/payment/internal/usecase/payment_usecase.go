@@ -31,7 +31,7 @@ func (u *paymentUsecase) InitiatePayment(ctx context.Context, req *domain.Initia
 
 	now := time.Now()
 	paymentID := uuid.New().String()
-	
+
 	payment := &domain.Payment{
 		ID:        paymentID,
 		BookingID: req.BookingID,
@@ -62,8 +62,8 @@ func (u *paymentUsecase) InitiatePayment(ctx context.Context, req *domain.Initia
 }
 
 func (u *paymentUsecase) HandleWebhook(ctx context.Context, payload *domain.WebhookPayload) error {
-	// In production, verify signature first
-	
+	// The X-Razorpay-Signature HMAC over the raw body is verified by the
+	// transport handler before it gets here (see internal/transport/http).
 	switch payload.Event {
 	case "payment.captured":
 		return u.handlePaymentCaptured(ctx, payload)
@@ -80,7 +80,7 @@ func (u *paymentUsecase) handlePaymentCaptured(ctx context.Context, payload *dom
 	if !ok {
 		return fmt.Errorf("invalid payment data in webhook")
 	}
-	
+
 	entity, ok := paymentData["entity"].(map[string]interface{})
 	if !ok {
 		return fmt.Errorf("invalid entity in payment data")
@@ -102,7 +102,7 @@ func (u *paymentUsecase) handlePaymentFailed(ctx context.Context, payload *domai
 	if !ok {
 		return fmt.Errorf("invalid payment data in webhook")
 	}
-	
+
 	entity, ok := paymentData["entity"].(map[string]interface{})
 	if !ok {
 		return fmt.Errorf("invalid entity in payment data")

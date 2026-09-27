@@ -33,7 +33,7 @@ func main() {
 	// Dependency Injection
 	paymentRepo := postgres.NewPaymentRepository(db)
 	paymentUsecase := usecase.NewPaymentUsecase(paymentRepo, cfg)
-	paymentHandler := transport.NewPaymentHandler(paymentUsecase)
+	paymentHandler := transport.NewPaymentHandler(paymentUsecase, cfg.RazorpayWebhookSecret)
 
 	// Router Setup
 	r := gin.Default()

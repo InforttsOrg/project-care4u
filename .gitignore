@@ -15,3 +15,14 @@ node_modules/
 Pods/
 *.iml
 __pycache__/
+*.pyc
+
+# Android / Flutter signing + local SDK paths (never commit these — a stray
+# `git add -A` on a build machine is how release keystores leak).
+key.properties
+local.properties
+*.jks
+*.keystore
+*.p12
+*.pem
+.dart_tool/
