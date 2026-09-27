@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/care4u/services/booking/internal/config"
+	"github.com/care4u/services/booking/internal/events"
 	"github.com/care4u/services/booking/internal/repository/postgres"
 	transport "github.com/care4u/services/booking/internal/transport/http"
 	"github.com/care4u/services/booking/internal/usecase"
@@ -30,9 +31,17 @@ func main() {
 	// Run Migrations
 	runMigrations(db)
 
+	// NATS Event Producer
+	producer, err := events.NewEventProducer(cfg.NatsURL)
+	if err != nil {
+		log.Printf("Warning: Failed to connect to NATS, events will not be published: %v", err)
+	} else if producer != nil {
+		defer producer.Close()
+	}
+
 	// Dependency Injection
 	bookingRepo := postgres.NewBookingRepository(db)
-	bookingUsecase := usecase.NewBookingUsecase(bookingRepo)
+	bookingUsecase := usecase.NewBookingUsecase(bookingRepo, producer)
 	bookingHandler := transport.NewBookingHandler(bookingUsecase)
 
 	// Router Setup

@@ -3,19 +3,22 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/care4u/services/booking/internal/domain"
+	"github.com/care4u/services/booking/internal/events"
 	"github.com/google/uuid"
 )
 
 type bookingUsecase struct {
-	repo domain.BookingRepository
+	repo     domain.BookingRepository
+	producer events.EventProducer
 }
 
 // NewBookingUsecase creates a new booking usecase
-func NewBookingUsecase(repo domain.BookingRepository) domain.BookingUsecase {
-	return &bookingUsecase{repo: repo}
+func NewBookingUsecase(repo domain.BookingRepository, producer events.EventProducer) domain.BookingUsecase {
+	return &bookingUsecase{repo: repo, producer: producer}
 }
 
 func (u *bookingUsecase) CreateBooking(ctx context.Context, req *domain.CreateBookingRequest) (*domain.Booking, error) {
@@ -54,7 +57,14 @@ func (u *bookingUsecase) CreateBooking(ctx context.Context, req *domain.CreateBo
 		return nil, fmt.Errorf("failed to create booking: %w", err)
 	}
 
-	// TODO: Publish event to NATS for notifications
+	// Publish event to NATS for notifications
+	event := events.NewBookingCreatedEvent(booking)
+	if u.producer != nil {
+		if err := u.producer.PublishBookingCreated(event); err != nil {
+			log.Printf("Failed to publish booking created event: %v", err)
+		}
+	}
+
 	return booking, nil
 }
 
@@ -106,7 +116,21 @@ func (u *bookingUsecase) CancelBooking(ctx context.Context, id, userID string) e
 		return fmt.Errorf("failed to cancel booking: %w", err)
 	}
 
-	// TODO: Publish cancellation event
+	// Fetch updated booking for event
+	booking, err = u.repo.GetByID(ctx, id)
+	if err != nil {
+		log.Printf("Failed to fetch booking for cancellation event: %v", err)
+		return nil
+	}
+
+	// Publish cancellation event
+	event := events.NewBookingCancelledEvent(booking)
+	if u.producer != nil {
+		if err := u.producer.PublishBookingCancelled(event); err != nil {
+			log.Printf("Failed to publish booking cancelled event: %v", err)
+		}
+	}
+
 	return nil
 }
 
@@ -127,6 +151,20 @@ func (u *bookingUsecase) ConfirmBooking(ctx context.Context, id string) error {
 		return fmt.Errorf("failed to confirm booking: %w", err)
 	}
 
-	// TODO: Publish confirmation event
+	// Fetch updated booking for event
+	booking, err = u.repo.GetByID(ctx, id)
+	if err != nil {
+		log.Printf("Failed to fetch booking for confirmation event: %v", err)
+		return nil
+	}
+
+	// Publish confirmation event
+	event := events.NewBookingConfirmedEvent(booking)
+	if u.producer != nil {
+		if err := u.producer.PublishBookingConfirmed(event); err != nil {
+			log.Printf("Failed to publish booking confirmed event: %v", err)
+		}
+	}
+
 	return nil
 }
