@@ -10,9 +10,9 @@ import (
 
 // In-memory repository for MVP - replace with PostgreSQL or DynamoDB in production
 type notificationRepository struct {
-	mu      sync.RWMutex
-	data    map[string]*domain.Notification
-	byUser  map[string][]string // userID -> []notificationIDs
+	mu     sync.RWMutex
+	data   map[string]*domain.Notification
+	byUser map[string][]string // userID -> []notificationIDs
 }
 
 func NewNotificationRepository() domain.NotificationRepository {

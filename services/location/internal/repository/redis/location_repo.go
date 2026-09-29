@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"math"
-	"sort"
 	"time"
 
 	"github.com/care4u/services/location/internal/domain"
@@ -121,18 +119,3 @@ func (r *locationRepository) GetProviderLocation(ctx context.Context, providerID
 
 	return &provider, nil
 }
-
-// Haversine formula for distance calculation (fallback)
-func haversineDistance(lat1, lon1, lat2, lon2 float64) float64 {
-	const R = 6371 // Earth's radius in km
-	dLat := (lat2 - lat1) * math.Pi / 180
-	dLon := (lon2 - lon1) * math.Pi / 180
-	a := math.Sin(dLat/2)*math.Sin(dLat/2) +
-		math.Cos(lat1*math.Pi/180)*math.Cos(lat2*math.Pi/180)*
-			math.Sin(dLon/2)*math.Sin(dLon/2)
-	c := 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
-	return R * c
-}
-
-// Ensure sort is used
-var _ = sort.Slice

@@ -56,8 +56,10 @@ func (u *authUsecase) VerifyOTP(ctx context.Context, phone, otp string) (string,
 		}
 	}
 
-	// Publish Event
-	if err := u.producer.PublishUserVerified(user); err != nil {
+	// Publish Event (skipped when NATS is unavailable — see cmd/api/main.go)
+	if u.producer == nil {
+		fmt.Printf("Warning: Event producer unavailable — skipped publishing user.verified for %s\n", user.ID)
+	} else if err := u.producer.PublishUserVerified(user); err != nil {
 		fmt.Printf("Warning: Failed to publish event: %v\n", err)
 	}
 
