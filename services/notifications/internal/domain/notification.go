@@ -9,10 +9,10 @@ import (
 type NotificationType string
 
 const (
-	TypePush    NotificationType = "push"
-	TypeSMS     NotificationType = "sms"
-	TypeEmail   NotificationType = "email"
-	TypeInApp   NotificationType = "in_app"
+	TypePush  NotificationType = "push"
+	TypeSMS   NotificationType = "sms"
+	TypeEmail NotificationType = "email"
+	TypeInApp NotificationType = "in_app"
 )
 
 // NotificationStatus represents the delivery status
@@ -27,16 +27,16 @@ const (
 
 // Notification represents a notification record
 type Notification struct {
-	ID          string             `json:"id"`
-	UserID      string             `json:"user_id"`
-	Type        NotificationType   `json:"type"`
-	Title       string             `json:"title"`
-	Body        string             `json:"body"`
-	Data        map[string]string  `json:"data,omitempty"`
-	Status      NotificationStatus `json:"status"`
-	FailReason  string             `json:"fail_reason,omitempty"`
-	SentAt      *time.Time         `json:"sent_at,omitempty"`
-	CreatedAt   time.Time          `json:"created_at"`
+	ID         string             `json:"id"`
+	UserID     string             `json:"user_id"`
+	Type       NotificationType   `json:"type"`
+	Title      string             `json:"title"`
+	Body       string             `json:"body"`
+	Data       map[string]string  `json:"data,omitempty"`
+	Status     NotificationStatus `json:"status"`
+	FailReason string             `json:"fail_reason,omitempty"`
+	SentAt     *time.Time         `json:"sent_at,omitempty"`
+	CreatedAt  time.Time          `json:"created_at"`
 }
 
 // SendNotificationRequest represents a notification request

@@ -9,11 +9,11 @@ import (
 type PaymentStatus string
 
 const (
-	PaymentStatusPending   PaymentStatus = "pending"
-	PaymentStatusCreated   PaymentStatus = "created"
-	PaymentStatusCaptured  PaymentStatus = "captured"
-	PaymentStatusFailed    PaymentStatus = "failed"
-	PaymentStatusRefunded  PaymentStatus = "refunded"
+	PaymentStatusPending  PaymentStatus = "pending"
+	PaymentStatusCreated  PaymentStatus = "created"
+	PaymentStatusCaptured PaymentStatus = "captured"
+	PaymentStatusFailed   PaymentStatus = "failed"
+	PaymentStatusRefunded PaymentStatus = "refunded"
 )
 
 // Payment represents a payment record
@@ -41,11 +41,11 @@ type InitiatePaymentRequest struct {
 
 // InitiatePaymentResponse represents the response for initiating a payment
 type InitiatePaymentResponse struct {
-	PaymentID  string `json:"payment_id"`
-	OrderID    string `json:"order_id"`     // Razorpay order ID
-	Amount     int64  `json:"amount"`
-	Currency   string `json:"currency"`
-	KeyID      string `json:"key_id"`       // Razorpay key for client
+	PaymentID string `json:"payment_id"`
+	OrderID   string `json:"order_id"` // Razorpay order ID
+	Amount    int64  `json:"amount"`
+	Currency  string `json:"currency"`
+	KeyID     string `json:"key_id"` // Razorpay key for client
 }
 
 // WebhookPayload represents a Razorpay webhook event

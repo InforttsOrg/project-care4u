@@ -53,10 +53,10 @@ func (r *paymentRepository) GetByGatewayID(ctx context.Context, gatewayID string
 
 func (r *paymentRepository) scanPayment(ctx context.Context, query string, arg string) (*domain.Payment, error) {
 	row := r.db.QueryRowContext(ctx, query, arg)
-	
+
 	var p domain.Payment
 	var gatewayPayID, failureReason sql.NullString
-	
+
 	err := row.Scan(
 		&p.ID,
 		&p.BookingID,
@@ -76,10 +76,10 @@ func (r *paymentRepository) scanPayment(ctx context.Context, query string, arg s
 		}
 		return nil, fmt.Errorf("failed to scan payment: %w", err)
 	}
-	
+
 	p.GatewayPayID = gatewayPayID.String
 	p.FailureReason = failureReason.String
-	
+
 	return &p, nil
 }
 

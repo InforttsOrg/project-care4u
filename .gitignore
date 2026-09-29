@@ -1,0 +1,28 @@
+.DS_Store
+.idea/
+.vscode/
+*.log
+.env
+.env.*
+!.env.example
+build/
+dist/
+.venv/
+venv/
+node_modules/
+.pub-cache/
+.gradle/
+Pods/
+*.iml
+__pycache__/
+*.pyc
+
+# Android / Flutter signing + local SDK paths (never commit these — a stray
+# `git add -A` on a build machine is how release keystores leak).
+key.properties
+local.properties
+*.jks
+*.keystore
+*.p12
+*.pem
+.dart_tool/

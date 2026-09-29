@@ -35,11 +35,11 @@ func main() {
 	// NATS Connection
 	eventProducer, err := event.NewEventProducer(cfg.NatsURL)
 	if err != nil {
-		log.Printf("Warning: Failed to connect to NATS: %v", err)
 		// For MVP, maybe we don't crash, or maybe we do. usage depends.
-		// Let's create a dummy or handle nil in usecase if needed.
-		// For now, let's crash to ensure event connectivity.
-		// log.Fatalf("Failed to connect to NATS: %v", err)
+		// The producer stays nil and the usecase skips the user.verified event
+		// (it already logs publish failures as warnings), so OTP logins keep
+		// working while NATS is down instead of panicking mid-request.
+		log.Printf("Warning: Failed to connect to NATS (user.verified events disabled): %v", err)
 	}
 
 	// Dependency Injection
