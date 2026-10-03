@@ -1,0 +1,13 @@
+{
+  "name": "care4u-client",
+  "compatibility_date": "2026-09-26",
+  "assets": {
+    "directory": "./apps/mobile/doctor_booking_flutter/build/web"
+  },
+  "routes": [
+    { "pattern": "care4u.infortts.site", "custom_domain": true },
+    { "pattern": "client.care4u.infortts.site", "custom_domain": true },
+    { "pattern": "care4u.infortts.com", "custom_domain": true },
+    { "pattern": "client.care4u.infortts.com", "custom_domain": true }
+  ]
+}
