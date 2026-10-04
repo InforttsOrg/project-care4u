@@ -7,14 +7,17 @@ import psycopg2
 
 app = FastAPI(title="Care4U Auth & Healthcare Core API", version="1.0.0")
 
-DB_URL = os.getenv("DATABASE_URL", "postgresql://infortts_admin:InforttsSecureDB2026!@127.0.0.1:5432/care4u_db")
+# DATABASE_URL must be supplied by the environment. There is deliberately no
+# fallback default: this file used to embed a live production DSN, which leaked
+# a real credential into git history. Rotate that credential, then pass the
+# replacement via the environment only.
+DB_URL = os.getenv("DATABASE_URL", "")
 
 @app.get("/")
 def root():
     return {
         "status": "online",
         "service": "Care4U Healthcare Suite",
-        "node": "Oracle Cloud ap-mumbai-1 (130.210.24.48)",
         "db": "care4u_db (PostgreSQL 16 Shared)"
     }
 

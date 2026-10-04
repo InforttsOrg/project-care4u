@@ -1,6 +1,21 @@
-FROM python:3.11-alpine
+FROM golang:1.25-alpine AS builder
+
 WORKDIR /app
-RUN pip install --no-cache-dir fastapi uvicorn psycopg2-binary
-COPY server.py /app/server.py
-EXPOSE 8002
-CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8002"]
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build -o main ./cmd/api
+
+FROM alpine:latest
+
+RUN apk --no-cache add ca-certificates
+
+WORKDIR /app
+COPY --from=builder /app/main .
+COPY --from=builder /app/migrations ./migrations
+
+EXPOSE 8080
+
+CMD ["./main"]

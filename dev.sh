@@ -60,6 +60,31 @@ require_docker() {
     return 0
 }
 
+kill_port() {
+    local port=$1
+    local pids=""
+    if command -v lsof > /dev/null 2>&1; then
+        pids=$(lsof -ti :$port 2>/dev/null)
+    elif command -v fuser > /dev/null 2>&1; then
+        pids=$(fuser $port/tcp 2>/dev/null)
+    fi
+    if [ ! -z "$pids" ]; then
+        echo -e " -> Clearing port $port (PIDs: $pids)"
+        echo "$pids" | xargs kill -9 2>/dev/null
+        sleep 1
+    fi
+}
+
+cleanup() {
+    echo -e "\n${RED}🛑 Shutting down Care4u services...${NC}"
+    docker compose down
+    # Kill go run processes
+    pkill -f "go run" 2>/dev/null
+    exit
+}
+
+trap cleanup SIGINT SIGTERM
+
 # --- Command Parsing ---
 if [ "$1" = "clean" ]; then
     echo -e "${YELLOW}🧹 Cleaning up Care4u...${NC}"
@@ -89,32 +114,6 @@ if [ "$1" = "install" ]; then
     exit 0
 fi
 
-
-# --- Functions ---
-kill_port() {
-    local port=$1
-    local pids=""
-    if command -v lsof > /dev/null 2>&1; then
-        pids=$(lsof -ti :$port 2>/dev/null)
-    elif command -v fuser > /dev/null 2>&1; then
-        pids=$(fuser $port/tcp 2>/dev/null)
-    fi
-    if [ ! -z "$pids" ]; then
-        echo -e " -> Clearing port $port (PIDs: $pids)"
-        echo "$pids" | xargs kill -9 2>/dev/null
-        sleep 1
-    fi
-}
-
-cleanup() {
-    echo -e "\n${RED}🛑 Shutting down Care4u services...${NC}"
-    docker compose down
-    # Kill go run processes
-    pkill -f "go run" 2>/dev/null
-    exit
-}
-
-trap cleanup SIGINT SIGTERM
 
 # --- Initialization ---
 echo -e "${CYAN}🚀 Manifesting ${PROJECT_NAME} Environment...${NC}"
