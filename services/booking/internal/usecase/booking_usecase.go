@@ -12,8 +12,8 @@ import (
 )
 
 type bookingUsecase struct {
-	repo      domain.BookingRepository
-	producer  events.EventProducer
+	repo     domain.BookingRepository
+	producer events.EventProducer
 }
 
 // NewBookingUsecase creates a new booking usecase

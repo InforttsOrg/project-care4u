@@ -11,30 +11,30 @@ import (
 type BookingEventType string
 
 const (
-	BookingCreated    BookingEventType = "booking.created"
-	BookingConfirmed  BookingEventType = "booking.confirmed"
-	BookingCancelled  BookingEventType = "booking.cancelled"
-	BookingCompleted  BookingEventType = "booking.completed"
-	BookingNoShow     BookingEventType = "booking.no_show"
+	BookingCreated   BookingEventType = "booking.created"
+	BookingConfirmed BookingEventType = "booking.confirmed"
+	BookingCancelled BookingEventType = "booking.cancelled"
+	BookingCompleted BookingEventType = "booking.completed"
+	BookingNoShow    BookingEventType = "booking.no_show"
 )
 
 type BookingEvent struct {
-	EventID   string          `json:"event_id"`
+	EventID   string           `json:"event_id"`
 	EventType BookingEventType `json:"event_type"`
-	Timestamp time.Time       `json:"timestamp"`
-	Version   string          `json:"version"`
+	Timestamp time.Time        `json:"timestamp"`
+	Version   string           `json:"version"`
 	Data      BookingEventData `json:"data"`
 }
 
 type BookingEventData struct {
-	BookingID  string    `json:"booking_id"`
-	PatientID  string    `json:"patient_id"`
-	ProviderID string    `json:"provider_id"`
-	ServiceType string   `json:"service_type"`
-	StartTime  time.Time `json:"start_time"`
-	EndTime    time.Time `json:"end_time"`
-	Status     string    `json:"status"`
-	Notes      string    `json:"notes,omitempty"`
+	BookingID   string    `json:"booking_id"`
+	PatientID   string    `json:"patient_id"`
+	ProviderID  string    `json:"provider_id"`
+	ServiceType string    `json:"service_type"`
+	StartTime   time.Time `json:"start_time"`
+	EndTime     time.Time `json:"end_time"`
+	Status      string    `json:"status"`
+	Notes       string    `json:"notes,omitempty"`
 }
 
 func NewBookingCreatedEvent(booking *domain.Booking) BookingEvent {
