@@ -131,6 +131,22 @@ func (r *providerRepository) Update(ctx context.Context, id string, req *domain.
 	return nil
 }
 
+func (r *providerRepository) Verify(ctx context.Context, id string) error {
+	// Verification is a dedicated write: it flips status to 'verified' AND makes the
+	// profile visible. Search() only returns status='verified' providers, so an
+	// availability-only update would leave verified providers permanently hidden.
+	query := `UPDATE providers SET status = $1, is_available = true, updated_at = NOW() WHERE id = $2`
+	result, err := r.db.ExecContext(ctx, query, domain.ProviderStatusVerified, id)
+	if err != nil {
+		return fmt.Errorf("failed to verify provider: %w", err)
+	}
+	rowsAffected, _ := result.RowsAffected()
+	if rowsAffected == 0 {
+		return fmt.Errorf("provider not found")
+	}
+	return nil
+}
+
 func (r *providerRepository) Search(ctx context.Context, specialty string, limit, offset int) ([]*domain.Provider, error) {
 	query := `
 		SELECT id, user_id, name, specialty, qualifications, experience_years, bio, consultation_fee, rating, review_count, status, is_available, created_at, updated_at 

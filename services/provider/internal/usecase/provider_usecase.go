@@ -102,9 +102,8 @@ func (u *providerUsecase) VerifyProvider(ctx context.Context, id string) error {
 		return fmt.Errorf("provider not found")
 	}
 
-	// Update status to verified and make available
-	isAvailable := true
-	return u.repo.Update(ctx, id, &domain.UpdateProviderRequest{
-		IsAvailable: &isAvailable,
-	})
+	// Flip the profile to verified and make it visible. This goes through a
+	// dedicated repo write, not the generic Update (which has no status field on
+	// purpose: verification must not be reachable via the public PUT /providers/:id payload).
+	return u.repo.Verify(ctx, id)
 }

@@ -70,6 +70,7 @@ type ProviderRepository interface {
 	GetByID(ctx context.Context, id string) (*Provider, error)
 	GetByUserID(ctx context.Context, userID string) (*Provider, error)
 	Update(ctx context.Context, id string, req *UpdateProviderRequest) error
+	Verify(ctx context.Context, id string) error
 	Search(ctx context.Context, specialty string, limit, offset int) ([]*Provider, error)
 	UpdateRating(ctx context.Context, id string, rating float64, reviewCount int) error
 }
