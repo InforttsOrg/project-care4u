@@ -98,9 +98,29 @@ stage('Flutter: care4u') {
               VER_ARGS="--android-skip-build-dependency-validation"
               [ -n "$BASE_VER" ] && VER_ARGS="$VER_ARGS --build-name=$BASE_VER"
               [ -n "$BUILD_NUM" ] && VER_ARGS="$VER_ARGS --build-number=$BUILD_NUM"
-              flutter build apk --release $VER_ARGS || echo "APK build attempted"
-              if [ "$PLAN_ACTION" = "playstore" ]; then
-                flutter build appbundle --release $VER_ARGS || echo "AppBundle build attempted"
+
+              export PATH="$HOME/.shorebird/bin:$PATH"
+              export SHOREBIRD_HOSTED_URL="https://shorebird.infortts.site"
+              export AUTH_SERVICE_URL="https://shorebird.infortts.site/auth"
+              export SHOREBIRD_TOKEN=$(cat ~/.infortts/shorebird_token 2>/dev/null || true)
+
+              if command -v shorebird >/dev/null 2>&1 && [ -f "shorebird.yaml" ]; then
+                echo "⚡ Shorebird detected for care4u — executing self-hosted CodePush ($PLAN_ACTION)..."
+                if [ "$PLAN_ACTION" = "playstore" ]; then
+                  shorebird release android --no-confirm --artifact=apk,aab $VER_ARGS || {
+                    echo "Shorebird release fallback to standard build"
+                    flutter build apk --release $VER_ARGS || true
+                    flutter build appbundle --release $VER_ARGS || true
+                  }
+                else
+                  shorebird patch android --no-confirm $VER_ARGS || echo "Shorebird patch fallback"
+                  flutter build apk --release $VER_ARGS || true
+                fi
+              else
+                flutter build apk --release $VER_ARGS || echo "APK build attempted"
+                if [ "$PLAN_ACTION" = "playstore" ]; then
+                  flutter build appbundle --release $VER_ARGS || echo "AppBundle build attempted"
+                fi
               fi
               if [ -d "web" ]; then
                 echo "Building Flutter Web release bundle..."
