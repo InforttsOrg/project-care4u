@@ -107,7 +107,7 @@ stage('Flutter: care4u') {
               if command -v shorebird >/dev/null 2>&1 && [ -f "shorebird.yaml" ]; then
                 echo "⚡ Shorebird detected for care4u — executing self-hosted CodePush ($PLAN_ACTION)..."
                 if [ "$PLAN_ACTION" = "playstore" ]; then
-                  shorebird release android --no-confirm --artifact=apk,aab $VER_ARGS || {
+                  shorebird release android --no-confirm --artifact=apk $VER_ARGS || {
                     echo "Shorebird release fallback to standard build"
                     flutter build apk --release $VER_ARGS || true
                     flutter build appbundle --release $VER_ARGS || true
